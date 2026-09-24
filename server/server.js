@@ -53,6 +53,7 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://mern-ecommerce-client.vercel.app",
 ];
 
 app.use(
@@ -185,7 +186,11 @@ app.use(errorMiddleware);
 // DATABASE + SERVER START
 // =====================================================
 
-const startServer = async () => {
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
   try {
     await mongoose.connect(process.env.MONGO_URI);
 
@@ -196,23 +201,31 @@ const startServer = async () => {
       mongoose.connection.name
     );
     console.log("====================================");
-
-    app.listen(PORT, () => {
-      console.log(
-        `Server is now running on port ${PORT}`
-      );
-      console.log(
-        `API: http://localhost:${PORT}`
-      );
-    });
   } catch (error) {
-    console.error(
-      "MongoDB connection failed:"
-    );
+    console.error("MongoDB connection failed:");
     console.error(error.message);
-
-    process.exit(1);
+    throw error;
   }
 };
 
-startServer();
+// Local development
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(
+          `Server is now running on port ${PORT}`
+        );
+        console.log(
+          `API: http://localhost:${PORT}`
+        );
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
+}
+
+// Vercel needs the Express app exported
+module.exports = app;
