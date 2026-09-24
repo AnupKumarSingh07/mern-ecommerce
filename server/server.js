@@ -196,10 +196,7 @@ const connectDB = async () => {
 
     console.log("====================================");
     console.log("MongoDB connected successfully");
-    console.log(
-      "MongoDB database:",
-      mongoose.connection.name
-    );
+    console.log("MongoDB database:", mongoose.connection.name);
     console.log("====================================");
   } catch (error) {
     console.error("MongoDB connection failed:");
@@ -213,12 +210,8 @@ if (!process.env.VERCEL) {
   connectDB()
     .then(() => {
       app.listen(PORT, () => {
-        console.log(
-          `Server is now running on port ${PORT}`
-        );
-        console.log(
-          `API: http://localhost:${PORT}`
-        );
+        console.log(`Server is now running on port ${PORT}`);
+        console.log(`API: http://localhost:${PORT}`);
       });
     })
     .catch((error) => {
@@ -227,5 +220,16 @@ if (!process.env.VERCEL) {
     });
 }
 
-// Vercel needs the Express app exported
-module.exports = app;
+// Vercel serverless handler
+module.exports = async (req, res) => {
+  try {
+    await connectDB();
+    return app(req, res);
+  } catch (error) {
+    console.error("Vercel server error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
+};
