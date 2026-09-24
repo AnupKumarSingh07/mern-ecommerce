@@ -1,92 +1,313 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+} from "@reduxjs/toolkit";
+
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
+
 const initialState = {
+  isLoading: false,
   orderList: [],
   orderDetails: null,
+  error: null,
 };
 
-export const getAllOrdersForAdmin = createAsyncThunk(
-  "/order/getAllOrdersForAdmin",
-  async () => {
-    const response = await axios.get(
-      "http://localhost:5000/api/admin/orders/get",
-      {
-        withCredentials: true,
+// =====================================================
+// GET ALL ADMIN ORDERS
+// =====================================================
+
+export const getAllOrdersForAdmin =
+  createAsyncThunk(
+    "/order/getAllOrdersForAdmin",
+
+    async (_, { rejectWithValue }) => {
+      try {
+        const response =
+          await axios.get(
+            `${API_URL}/api/admin/orders/get`,
+            {
+              withCredentials: true,
+            }
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "GET ADMIN ORDERS ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        return rejectWithValue(
+          error.response?.data || {
+            success: false,
+            message:
+              error.message,
+          }
+        );
       }
-    );
+    }
+  );
 
-    return response.data;
-  }
-);
+// =====================================================
+// GET ADMIN ORDER DETAILS
+// =====================================================
 
-export const getOrderDetailsForAdmin = createAsyncThunk(
-  "/order/getOrderDetailsForAdmin",
-  async (id) => {
-    const response = await axios.get(
-      `http://localhost:5000/api/admin/orders/details/${id}`,
-      {
-        withCredentials: true,
+export const getOrderDetailsForAdmin =
+  createAsyncThunk(
+    "/order/getOrderDetailsForAdmin",
+
+    async (
+      id,
+      { rejectWithValue }
+    ) => {
+      try {
+        const response =
+          await axios.get(
+            `${API_URL}/api/admin/orders/details/${id}`,
+            {
+              withCredentials: true,
+            }
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "GET ADMIN ORDER DETAILS ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        return rejectWithValue(
+          error.response?.data || {
+            success: false,
+            message:
+              error.message,
+          }
+        );
       }
-    );
-    return response.data;
-  }
-);
+    }
+  );
 
-export const updateOrderStatus = createAsyncThunk(
-  "/order/updateOrderStatus",
-  async ({ id, orderStatus }) => {
-    const response = await axios.put(
-      `http://localhost:5000/api/admin/orders/update/${id}`,
-      {
-        orderStatus,
+// =====================================================
+// UPDATE ORDER STATUS
+// =====================================================
+
+export const updateOrderStatus =
+  createAsyncThunk(
+    "/order/updateOrderStatus",
+
+    async (
+      { id, orderStatus },
+      { rejectWithValue }
+    ) => {
+      try {
+        const response =
+          await axios.put(
+            `${API_URL}/api/admin/orders/update/${id}`,
+            {
+              orderStatus,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+
+        return response.data;
+      } catch (error) {
+        console.error(
+          "UPDATE ORDER STATUS ERROR:",
+          error.response?.data ||
+            error.message
+        );
+
+        return rejectWithValue(
+          error.response?.data || {
+            success: false,
+            message:
+              error.message,
+          }
+        );
+      }
+    }
+  );
+
+// =====================================================
+// SLICE
+// =====================================================
+
+const adminOrderSlice =
+  createSlice({
+    name: "adminOrderSlice",
+
+    initialState,
+
+    reducers: {
+      resetOrderDetails: (
+        state
+      ) => {
+        state.orderDetails =
+          null;
       },
-      {
-        withCredentials: true,
-      }
-    );
 
-    return response.data;
-  }
-);
-
-const adminOrderSlice = createSlice({
-  name: "adminOrderSlice",
-  initialState,
-  reducers: {
-    resetOrderDetails: (state) => {
-      console.log("resetOrderDetails");
-
-      state.orderDetails = null;
+      clearOrderError: (
+        state
+      ) => {
+        state.error = null;
+      },
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(getAllOrdersForAdmin.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getAllOrdersForAdmin.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.orderList = action.payload.data;
-      })
-      .addCase(getAllOrdersForAdmin.rejected, (state) => {
-        state.isLoading = false;
-        state.orderList = [];
-      })
-      .addCase(getOrderDetailsForAdmin.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getOrderDetailsForAdmin.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.orderDetails = action.payload.data;
-      })
-      .addCase(getOrderDetailsForAdmin.rejected, (state) => {
-        state.isLoading = false;
-        state.orderDetails = null;
-      });
-  },
-});
 
-export const { resetOrderDetails } = adminOrderSlice.actions;
+    extraReducers: (
+      builder
+    ) => {
+      builder
+
+        // ---------------------------------------------
+        // GET ALL ORDERS
+        // ---------------------------------------------
+
+        .addCase(
+          getAllOrdersForAdmin.pending,
+          (state) => {
+            state.isLoading =
+              true;
+
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          getAllOrdersForAdmin.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.isLoading =
+              false;
+
+            state.orderList =
+              action.payload?.data ||
+              [];
+
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          getAllOrdersForAdmin.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.isLoading =
+              false;
+
+            state.orderList =
+              [];
+
+            state.error =
+              action.payload
+                ?.message ||
+              "Failed to fetch orders.";
+          }
+        )
+
+        // ---------------------------------------------
+        // ORDER DETAILS
+        // ---------------------------------------------
+
+        .addCase(
+          getOrderDetailsForAdmin.pending,
+          (state) => {
+            state.isLoading =
+              true;
+
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          getOrderDetailsForAdmin.fulfilled,
+          (
+            state,
+            action
+          ) => {
+            state.isLoading =
+              false;
+
+            state.orderDetails =
+              action.payload?.data ||
+              null;
+          }
+        )
+
+        .addCase(
+          getOrderDetailsForAdmin.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.isLoading =
+              false;
+
+            state.orderDetails =
+              null;
+
+            state.error =
+              action.payload
+                ?.message ||
+              "Failed to fetch order details.";
+          }
+        )
+
+        // ---------------------------------------------
+        // UPDATE STATUS
+        // ---------------------------------------------
+
+        .addCase(
+          updateOrderStatus.pending,
+          (state) => {
+            state.isLoading =
+              true;
+
+            state.error = null;
+          }
+        )
+
+        .addCase(
+          updateOrderStatus.fulfilled,
+          (state) => {
+            state.isLoading =
+              false;
+          }
+        )
+
+        .addCase(
+          updateOrderStatus.rejected,
+          (
+            state,
+            action
+          ) => {
+            state.isLoading =
+              false;
+
+            state.error =
+              action.payload
+                ?.message ||
+              "Failed to update order status.";
+          }
+        );
+    },
+  });
+
+export const {
+  resetOrderDetails,
+  clearOrderError,
+} =
+  adminOrderSlice.actions;
 
 export default adminOrderSlice.reducer;

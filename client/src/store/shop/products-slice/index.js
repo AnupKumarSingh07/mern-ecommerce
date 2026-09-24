@@ -23,11 +23,37 @@ export const fetchAllFilteredProducts = createAsyncThunk(
   }
 );
 
+// export const fetchProductDetails = createAsyncThunk(
+//   "/products/fetchProductDetails",
+//   async (id) => {
+//     const result = await axios.get(
+//       `http://localhost:5000/api/shop/products/get/${id}`
+//     );
+
+//     return result?.data;
+//   }
+// );
+
 export const fetchProductDetails = createAsyncThunk(
   "/products/fetchProductDetails",
   async (id) => {
     const result = await axios.get(
       `http://localhost:5000/api/shop/products/get/${id}`
+    );
+
+    console.log(
+      "🔎 PRODUCT DETAILS API RESPONSE:",
+      result?.data
+    );
+
+    console.log(
+      "🔎 PRODUCT DETAILS:",
+      result?.data?.data
+    );
+
+    console.log(
+      "🔎 PRODUCT VARIANTS:",
+      result?.data?.data?.variants
     );
 
     return result?.data;

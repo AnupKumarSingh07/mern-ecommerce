@@ -1,230 +1,646 @@
-const { client, checkoutNodeJssdk } = require("../../helpers/paypal");
+const crypto = require("crypto");
+const Razorpay = require("razorpay");
+
 const Order = require("../../models/Order");
 const Cart = require("../../models/Cart");
 const Product = require("../../models/Product");
 
-// ================= CREATE ORDER =================
-const createOrder = async (req, res) => {
+// =====================================================
+// CREATE RAZORPAY ORDER
+// =====================================================
+
+const createOrder = async (
+  req,
+  res
+) => {
   try {
-    console.log("===== CREATE ORDER CALLED =====");
-    console.log(req.body);
+    const userId =
+      req.user.id;
 
     const {
-      userId,
       cartItems,
       addressInfo,
-      orderStatus,
-      paymentMethod,
-      paymentStatus,
-      totalAmount,
-      orderDate,
-      orderUpdateDate,
-      paymentId,
-      payerId,
       cartId,
     } = req.body;
 
-    const request = new checkoutNodeJssdk.orders.OrdersCreateRequest();
-
-    request.prefer("return=representation");
-
-    request.requestBody({
-      intent: "CAPTURE",
-      purchase_units: [
-        {
-          amount: {
-            currency_code: "USD",
-            value: Number(totalAmount).toFixed(2),
-
-            breakdown: {
-              item_total: {
-                currency_code: "USD",
-                value: cartItems
-                  .reduce(
-                    (sum, item) =>
-                      sum +
-                      Number(item.price) * Number(item.quantity),
-                    0
-                  )
-                  .toFixed(2),
-              },
-            },
-          },
-
-          items: cartItems.map((item) => ({
-            name: item.title,
-            unit_amount: {
-              currency_code: "USD",
-              value: Number(item.price).toFixed(2),
-            },
-            quantity: Number(item.quantity).toString(),
-          })),
-        },
-      ],
-
-
-      application_context: {
-        return_url: `${process.env.CLIENT_URL}/shop/paypal-return`,
-        cancel_url: `${process.env.CLIENT_URL}/shop/paypal-cancel`,
-        brand_name: "My E-Commerce Store",
-        user_action: "PAY_NOW",
-      },
-    });
-
-    const response = await client().execute(request);
-
-    console.log("PAYPAL RESPONSE");
-    console.dir(response.result, { depth: null });
-
-    const newlyCreatedOrder = new Order({
-      userId,
-      cartId,
-      cartItems,
-      addressInfo,
-      orderStatus,
-      paymentMethod,
-      paymentStatus,
-      totalAmount,
-      orderDate,
-      orderUpdateDate,
-      paymentId,
-      payerId,
-    });
-
-    await newlyCreatedOrder.save();
-
-    const approvalURL = response.result.links.find(
-      (link) => link.rel === "approve"
-    ).href;
-
-    return res.status(201).json({
-      success: true,
-      approvalURL,
-      orderId: newlyCreatedOrder._id,
-    });
-  } catch (e) {
-    console.error("CREATE ORDER ERROR");
-    console.error(e);
-
-    return res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
-  }
-};
-
-// ================= CAPTURE PAYMENT =================
-const capturePayment = async (req, res) => {
-  try {
-    const { paymentId, payerId, orderId } = req.body;
-
-    let order = await Order.findById(orderId);
-
-    if (!order) {
-      return res.status(404).json({
+    if (
+      !Array.isArray(cartItems) ||
+      cartItems.length === 0
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Order cannot be found",
+        message:
+          "Cart items are required.",
       });
     }
 
-    order.paymentStatus = "paid";
-    order.orderStatus = "confirmed";
-    order.paymentId = paymentId;
-    order.payerId = payerId;
+    if (!addressInfo?.address) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Delivery address is required.",
+      });
+    }
 
-    for (let item of order.cartItems) {
-      let product = await Product.findById(item.productId);
+    // =================================================
+    // VERIFY PRODUCTS + CALCULATE REAL TOTAL
+    // =================================================
+
+    const verifiedCartItems = [];
+
+    let calculatedTotal = 0;
+
+    for (const item of cartItems) {
+      if (!item?.productId) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid product in cart.",
+        });
+      }
+
+      const product =
+        await Product.findById(
+          item.productId
+        );
 
       if (!product) {
         return res.status(404).json({
           success: false,
-          message: "Product not found.",
+          message:
+            "One of the products no longer exists.",
         });
       }
 
-      if (product.totalStock < item.quantity) {
+      const quantity =
+        Number(item.quantity);
+
+      if (
+        !Number.isInteger(quantity) ||
+        quantity <= 0
+      ) {
         return res.status(400).json({
           success: false,
-          message: `Not enough stock for ${product.title}`,
+          message:
+            "Invalid product quantity.",
         });
       }
 
-      product.totalStock -= item.quantity;
+      // ===============================================
+      // VARIANT
+      // ===============================================
 
-      await product.save();
-    }
+      let selectedVariant = null;
 
-    await Cart.findByIdAndDelete(order.cartId);
+      if (
+        item.variantId &&
+        product.variants?.length
+      ) {
+        selectedVariant =
+          product.variants.find(
+            (variant) =>
+              variant._id.toString() ===
+              item.variantId.toString()
+          );
 
-    await order.save();
+        if (!selectedVariant) {
+          return res.status(400).json({
+            success: false,
+            message:
+              `Selected variant for ${product.title} was not found.`,
+          });
+        }
+      }
 
-    res.status(200).json({
-      success: true,
-      message: "Order confirmed",
-      data: order,
-    });
-  } catch (e) {
-    console.error(e);
+      // ===============================================
+      // PRICE
+      // ===============================================
 
-    res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
-  }
-};
+      const regularPrice =
+        selectedVariant
+          ? Number(
+              selectedVariant.price
+            )
+          : Number(product.price);
 
-// ================= USER ORDERS =================
-const getAllOrdersByUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
+      const salePrice =
+        selectedVariant
+          ? Number(
+              selectedVariant.salePrice || 0
+            )
+          : Number(
+              product.salePrice || 0
+            );
 
-    const orders = await Order.find({ userId });
+      const finalPrice =
+        salePrice > 0
+          ? salePrice
+          : regularPrice;
 
-    if (!orders.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No orders found!",
+      // ===============================================
+      // STOCK
+      // ===============================================
+
+      const availableStock =
+        selectedVariant
+          ? Number(
+              selectedVariant.stock
+            )
+          : Number(
+              product.totalStock
+            );
+
+      if (
+        availableStock < quantity
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            `${product.title} does not have enough stock.`,
+        });
+      }
+
+      const itemTotal =
+        finalPrice * quantity;
+
+      calculatedTotal += itemTotal;
+
+      verifiedCartItems.push({
+        productId:
+          product._id.toString(),
+
+        title:
+          product.title,
+
+        image:
+          product.image,
+
+        price:
+          finalPrice,
+
+        quantity,
+
+        color:
+          selectedVariant?.color ||
+          "",
+
+        size:
+          selectedVariant?.size ||
+          "",
+
+        variantId:
+          selectedVariant?._id
+            ? selectedVariant._id.toString()
+            : "",
       });
     }
 
-    res.status(200).json({
-      success: true,
-      data: orders,
-    });
-  } catch (e) {
-    console.error(e);
+    calculatedTotal =
+      Math.round(
+        calculatedTotal * 100
+      ) / 100;
 
-    res.status(500).json({
+    if (calculatedTotal <= 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid order amount.",
+      });
+    }
+
+    // =================================================
+    // RAZORPAY
+    // =================================================
+
+    const razorpay =
+      new Razorpay({
+        key_id:
+          process.env.RAZORPAY_KEY_ID,
+
+        key_secret:
+          process.env.RAZORPAY_KEY_SECRET,
+      });
+
+    const amountInPaise =
+      Math.round(
+        calculatedTotal * 100
+      );
+
+    const razorpayOrder =
+      await razorpay.orders.create({
+        amount:
+          amountInPaise,
+
+        currency: "INR",
+
+        receipt:
+          `rcpt_${Date.now()}`,
+      });
+
+    if (!razorpayOrder?.id) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Failed to generate Razorpay order.",
+      });
+    }
+
+    // =================================================
+    // SAVE ORDER
+    // =================================================
+
+    const newlyCreatedOrder =
+      new Order({
+        userId,
+
+        userName:
+          req.user.userName || "",
+
+        cartId:
+          cartId || "",
+
+        cartItems:
+          verifiedCartItems,
+
+        addressInfo: {
+          addressId:
+            addressInfo.addressId ||
+            "",
+
+          address:
+            addressInfo.address ||
+            "",
+
+          city:
+            addressInfo.city ||
+            "",
+
+          pincode:
+            addressInfo.pincode ||
+            "",
+
+          phone:
+            addressInfo.phone ||
+            "",
+
+          notes:
+            addressInfo.notes ||
+            "",
+        },
+
+        orderStatus:
+          "pending",
+
+        paymentMethod:
+          "razorpay",
+
+        paymentStatus:
+          "pending",
+
+        totalAmount:
+          calculatedTotal,
+
+        paymentId: "",
+
+        payerId: "",
+
+        razorpayOrderId:
+          razorpayOrder.id,
+      });
+
+    await newlyCreatedOrder.save();
+
+    return res.status(201).json({
+      success: true,
+
+      orderId:
+        newlyCreatedOrder._id,
+
+      razorpayOrderId:
+        razorpayOrder.id,
+
+      amount:
+        razorpayOrder.amount,
+
+      currency:
+        razorpayOrder.currency,
+    });
+  } catch (error) {
+    console.error(
+      "CREATE RAZORPAY ORDER ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Some error occurred!",
+      message:
+        error.message ||
+        "Failed to create Razorpay order.",
     });
   }
 };
 
-// ================= ORDER DETAILS =================
-const getOrderDetails = async (req, res) => {
-  try {
-    const { id } = req.params;
+// =====================================================
+// VERIFY RAZORPAY PAYMENT
+// =====================================================
 
-    const order = await Order.findById(id);
+const capturePayment = async (
+  req,
+  res
+) => {
+  try {
+    const userId =
+      req.user.id;
+
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      orderId,
+    } = req.body;
+
+    if (
+      !razorpay_order_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature ||
+      !orderId
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Missing payment verification parameters.",
+      });
+    }
+
+    const body =
+      `${razorpay_order_id}|${razorpay_payment_id}`;
+
+    const expectedSignature =
+      crypto
+        .createHmac(
+          "sha256",
+          process.env.RAZORPAY_KEY_SECRET
+        )
+        .update(body)
+        .digest("hex");
+
+    if (
+      expectedSignature !==
+      razorpay_signature
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Payment verification failed.",
+      });
+    }
+
+    const order =
+      await Order.findById(
+        orderId
+      );
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "Order not found!",
+        message:
+          "Order not found.",
       });
     }
 
-    res.status(200).json({
+    // User can only capture their own order
+    if (
+      order.userId.toString() !==
+      userId.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You are not allowed to update this order.",
+      });
+    }
+
+    // Make sure Razorpay order matches
+    if (
+      order.razorpayOrderId !==
+      razorpay_order_id
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Razorpay order mismatch.",
+      });
+    }
+
+    if (
+      order.paymentStatus ===
+      "paid"
+    ) {
+      return res.status(200).json({
+        success: true,
+        message:
+          "Payment already captured.",
+        data: order,
+      });
+    }
+
+    // =================================================
+    // UPDATE PAYMENT
+    // =================================================
+
+    order.paymentStatus =
+      "paid";
+
+    order.orderStatus =
+      "confirmed";
+
+    order.paymentId =
+      razorpay_payment_id;
+
+    order.orderUpdateDate =
+      new Date();
+
+    // =================================================
+    // REDUCE STOCK
+    // =================================================
+
+    for (const item of order.cartItems) {
+      const product =
+        await Product.findById(
+          item.productId
+        );
+
+      if (!product) {
+        continue;
+      }
+
+      const itemQty =
+        Number(item.quantity) || 1;
+
+      if (
+        item.variantId &&
+        product.variants?.length
+      ) {
+        const variant =
+          product.variants.find(
+            (v) =>
+              v._id.toString() ===
+              item.variantId.toString()
+          );
+
+        if (variant) {
+          variant.stock =
+            Math.max(
+              0,
+              Number(
+                variant.stock
+              ) - itemQty
+            );
+        }
+      } else {
+        product.totalStock =
+          Math.max(
+            0,
+            Number(
+              product.totalStock
+            ) - itemQty
+          );
+      }
+
+      await product.save();
+    }
+
+    // =================================================
+    // DELETE CART
+    // =================================================
+
+    if (order.cartId) {
+      await Cart.findByIdAndDelete(
+        order.cartId
+      );
+    }
+
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Payment verified and order confirmed successfully.",
+      data: order,
+    });
+  } catch (error) {
+    console.error(
+      "CAPTURE PAYMENT ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "Payment verification error.",
+    });
+  }
+};
+
+// =====================================================
+// USER ORDERS
+// =====================================================
+
+const getAllOrdersByUser = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      userId,
+    } = req.params;
+
+    if (
+      userId.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You are not allowed to view these orders.",
+      });
+    }
+
+    const orders =
+      await Order.find({
+        userId,
+      }).sort({
+        createdAt: -1,
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
+    });
+  } catch (error) {
+    console.error(
+      "GET USER ORDERS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Error fetching orders.",
+    });
+  }
+};
+
+// =====================================================
+// USER ORDER DETAILS
+// =====================================================
+
+const getOrderDetails = async (
+  req,
+  res
+) => {
+  try {
+    const {
+      id,
+    } = req.params;
+
+    const order =
+      await Order.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "Order not found!",
+      });
+    }
+
+    if (
+      order.userId.toString() !==
+      req.user.id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "You are not allowed to view this order.",
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       data: order,
     });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(
+      "GET ORDER DETAILS ERROR:",
+      error
+    );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: "Some error occurred!",
+      message:
+        "Error fetching order details.",
     });
   }
 };

@@ -1,4 +1,40 @@
+
 const mongoose = require("mongoose");
+
+const variantSchema = new mongoose.Schema(
+  {
+    color: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    size: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    salePrice: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    stock: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+  },
+  { _id: true }
+);
 
 const productSchema = new mongoose.Schema(
   {
@@ -40,6 +76,12 @@ const productSchema = new mongoose.Schema(
     totalStock: {
       type: Number,
       required: true,
+    },
+
+    // ⭐ NEW
+    variants: {
+      type: [variantSchema],
+      default: [],
     },
 
     averageReview: {

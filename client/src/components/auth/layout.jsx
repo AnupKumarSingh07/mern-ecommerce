@@ -20,7 +20,7 @@ function AuthLayout() {
 
               <div>
                 <p className="text-lg font-bold tracking-tight text-white">
-                  E-Commerce
+                  The MeltingPoint
                 </p>
 
                 <p className="text-xs text-white/50">
@@ -68,7 +68,7 @@ function AuthLayout() {
 
             {/* Footer */}
             <p className="text-xs text-white/40">
-              © {new Date().getFullYear()} E-Commerce Shopping
+              © {new Date().getFullYear()} The MeltingPoint Shopping
             </p>
           </div>
         </div>
@@ -83,7 +83,7 @@ function AuthLayout() {
               </div>
 
               <span className="text-lg font-bold tracking-tight">
-                E-Commerce
+                The MeltingPoint
               </span>
             </div>
 

@@ -286,9 +286,9 @@ function ShoppingHome() {
             isolate
             h-[430px]
             overflow-hidden
-            rounded-3xl
-            bg-muted
-            shadow-xl
+            rounded-[1.75rem]
+            bg-slate-950
+            shadow-[0_20px_60px_rgba(79,70,229,0.18)]
             sm:h-[500px]
             lg:h-[580px]
             xl:h-[620px]
@@ -316,10 +316,9 @@ function ShoppingHome() {
                   transition-all
                   duration-1000
                   ease-in-out
-                  ${
-                    index === currentSlide
-                      ? "scale-100 opacity-100"
-                      : "scale-105 opacity-0"
+                  ${index === currentSlide
+                    ? "scale-100 opacity-100"
+                    : "scale-105 opacity-0"
                   }
                 `}
               />
@@ -354,10 +353,40 @@ function ShoppingHome() {
               absolute
               inset-0
               bg-gradient-to-r
-              from-black/75
-              via-black/40
-              to-black/5
+              from-slate-950/90
+              via-indigo-950/65
+              to-pink-950/20
             "
+          />
+
+          {/* PREMIUM COLOR GLOW */}
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -right-24
+              -top-24
+              h-72
+              w-72
+              rounded-full
+             bg-pink-500/20
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+    pointer-events-none
+    absolute
+    -bottom-32
+    -left-20
+    h-80
+    w-80
+    rounded-full
+    bg-indigo-500/20
+    blur-3xl
+  "
           />
 
           {/* HERO CONTENT */}
@@ -569,9 +598,8 @@ function ShoppingHome() {
                         index
                       }
                       type="button"
-                      aria-label={`Go to slide ${
-                        index + 1
-                      }`}
+                      aria-label={`Go to slide ${index + 1
+                        }`}
                       onClick={() =>
                         setCurrentSlide(index)
                       }
@@ -580,10 +608,9 @@ function ShoppingHome() {
                         rounded-full
                         transition-all
                         duration-300
-                        ${
-                          index === currentSlide
-                            ? "w-8 bg-white"
-                            : "w-2 bg-white/50 hover:bg-white/80"
+                        ${index === currentSlide
+                          ? "w-8 bg-white"
+                          : "w-2 bg-white/50 hover:bg-white/80"
                         }
                       `}
                     />
@@ -595,231 +622,135 @@ function ShoppingHome() {
         </div>
       </section>
 
-      {/* =====================================================
-          TRUST / BENEFITS
-      ===================================================== */}
-
-      <section className="border-b bg-background">
-        <div
-          className="
-            container
-            grid
-            grid-cols-2
-            divide-x
-            py-7
-            sm:grid-cols-4
-            sm:divide-x
-          "
-        >
-
-          <div className="flex items-center justify-center gap-3 px-3">
-            <Truck className="h-5 w-5 shrink-0 text-primary" />
-
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold">
-                Fast delivery
-              </p>
-
-              <p className="text-xs text-muted-foreground">
-                Delivered to your door
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 px-3">
-            <ShieldCheck className="h-5 w-5 shrink-0 text-primary" />
-
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold">
-                Secure payment
-              </p>
-
-              <p className="text-xs text-muted-foreground">
-                Safe & protected
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 px-3">
-            <RotateCcw className="h-5 w-5 shrink-0 text-primary" />
-
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold">
-                Easy returns
-              </p>
-
-              <p className="text-xs text-muted-foreground">
-                Hassle-free shopping
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-3 px-3">
-            <Headphones className="h-5 w-5 shrink-0 text-primary" />
-
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold">
-                Support
-              </p>
-
-              <p className="text-xs text-muted-foreground">
-                We're here to help
-              </p>
-            </div>
-          </div>
-
-        </div>
-      </section>
 
       {/* =====================================================
-          CATEGORIES
-      ===================================================== */}
+    QUICK CATEGORIES
+===================================================== */}
 
       <section
         id="categories"
-        className="py-16 sm:py-20"
+        className="border-y bg-background"
       >
-        <div className="container px-4 sm:px-6 lg:px-8">
+        <div className="container px-4 py-8 sm:px-6 lg:px-8">
 
-          <div
-            className="
-              mb-8
-              flex
-              items-end
-              justify-between
-              gap-4
-            "
-          >
+          {/* Header */}
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">
-                Browse collections
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                Explore
               </p>
 
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
                 Shop by category
               </h2>
-
-              <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-                Find exactly what you're looking for.
-              </p>
             </div>
 
             <Button
               variant="ghost"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="hidden rounded-full sm:flex"
+              onClick={() => navigate("/shop/listing")}
+              className="hidden rounded-full text-sm font-semibold sm:flex"
             >
               View all
-
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </div>
 
+          {/* Category strip */}
           <div
             className="
-              grid
-              grid-cols-2
-              gap-3
-              sm:grid-cols-3
-              lg:grid-cols-5
-            "
+        flex
+        gap-3
+        overflow-x-auto
+        pb-2
+        scrollbar-hide
+      "
           >
-            {categoriesWithIcon.map(
-              (categoryItem) => {
-                const CategoryIcon =
-                  categoryItem.icon;
+            {categoriesWithIcon.map((categoryItem) => {
+              const CategoryIcon = categoryItem.icon;
 
-                return (
-                  <Card
-                    key={categoryItem.id}
-                    onClick={() =>
-                      handleNavigateToListingPage(
-                        categoryItem,
-                        "category"
-                      )
-                    }
+              return (
+                <button
+                  key={categoryItem.id}
+                  type="button"
+                  onClick={() =>
+                    handleNavigateToListingPage(
+                      categoryItem,
+                      "category"
+                    )
+                  }
+                  className="
+              group
+              flex
+              min-w-[120px]
+              shrink-0
+              flex-col
+              items-center
+              rounded-xl
+              border
+              bg-card
+              px-4
+              py-4
+              transition-all
+              duration-200
+              hover:border-primary/30
+              hover:shadow-md
+              active:scale-[0.97]
+              sm:min-w-[140px]
+              sm:px-5
+              sm:py-5
+            "
+                >
+                  {/* Icon */}
+                  <div
                     className="
-                      group
-                      cursor-pointer
-                      overflow-hidden
-                      rounded-2xl
-                      border
-                      bg-card
-                      transition-all
-                      duration-300
-                      hover:-translate-y-1
-                      hover:border-foreground/20
-                      hover:shadow-xl
-                    "
+                flex
+                h-12
+                w-12
+                items-center
+                justify-center
+                rounded-full
+                bg-primary/10
+                text-primary
+                transition-colors
+                duration-200
+                group-hover:bg-primary
+                group-hover:text-primary-foreground
+                sm:h-14
+                sm:w-14
+              "
                   >
-                    <CardContent
-                      className="
-                        flex
-                        min-h-[155px]
-                        flex-col
-                        items-center
-                        justify-center
-                        p-5
-                        text-center
-                        sm:min-h-[175px]
-                      "
-                    >
-                      <div
-                        className="
-                          mb-5
-                          flex
-                          h-16
-                          w-16
-                          items-center
-                          justify-center
-                          rounded-2xl
-                          bg-muted
-                          transition-all
-                          duration-300
-                          group-hover:scale-110
-                          group-hover:bg-primary
-                          group-hover:text-primary-foreground
-                        "
-                      >
-                        <CategoryIcon className="h-7 w-7" />
-                      </div>
+                    <CategoryIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </div>
 
-                      <span className="text-sm font-semibold">
-                        {categoryItem.label}
-                      </span>
+                  {/* Name */}
+                  <span
+                    className="
+                mt-3
+                text-sm
+                font-semibold
+                whitespace-nowrap
+                group-hover:text-primary
+              "
+                  >
+                    {categoryItem.label}
+                  </span>
 
-                      <span
-                        className="
-                          mt-1
-                          flex
-                          items-center
-                          gap-1
-                          text-xs
-                          text-muted-foreground
-                        "
-                      >
-                        Explore
-                        <ArrowRight className="h-3 w-3" />
-                      </span>
-                    </CardContent>
-                  </Card>
-                );
-              }
-            )}
+                  <span className="mt-0.5 text-xs text-muted-foreground">
+                    Explore
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="mt-6 flex justify-center sm:hidden">
+          {/* Mobile view all */}
+          <div className="mt-4 flex justify-center sm:hidden">
             <Button
               variant="outline"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="rounded-full"
+              onClick={() => navigate("/shop/listing")}
+              className="rounded-full px-5 text-sm"
             >
               View all categories
-
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -828,83 +759,50 @@ function ShoppingHome() {
       </section>
 
       {/* =====================================================
-          BRANDS
-      ===================================================== */}
+    SHOP BY BRAND
+===================================================== */}
 
-      <section
-        className="
-          border-y
-          bg-muted/30
-          py-16
-          sm:py-20
-        "
-      >
-        <div className="container px-4 sm:px-6 lg:px-8">
+      <section className="bg-muted/30">
+        <div className="container px-4 py-8 sm:px-6 lg:px-8">
 
-          <div
-            className="
-              mb-10
-              flex
-              flex-col
-              justify-between
-              gap-4
-              sm:flex-row
-              sm:items-end
-            "
-          >
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <p
-                className="
-                  mb-2
-                  text-sm
-                  font-medium
-                  uppercase
-                  tracking-wider
-                  text-muted-foreground
-                "
-              >
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                 Trusted & loved
               </p>
 
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
                 Shop by brand
               </h2>
-
-              <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-                Explore products from brands you
-                already love.
-              </p>
             </div>
 
             <Button
-              variant="outline"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="hidden rounded-full sm:flex"
+              variant="ghost"
+              onClick={() => navigate("/shop/listing")}
+              className="hidden rounded-full text-sm font-semibold sm:flex"
             >
               Explore all
-
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </div>
 
+          {/* Brand strip */}
           <div
             className="
-              grid
-              grid-cols-2
-              gap-3
-              sm:grid-cols-3
-              lg:grid-cols-6
-            "
+        flex
+        gap-3
+        overflow-x-auto
+        pb-2
+        scrollbar-hide
+      "
           >
             {brandsWithIcon.map((brandItem) => {
-              const BrandIcon =
-                brandItem.icon;
+              const BrandIcon = brandItem.icon;
 
               return (
-                <Card
+                <button
                   key={brandItem.id}
+                  type="button"
                   onClick={() =>
                     handleNavigateToListingPage(
                       brandItem,
@@ -912,90 +810,78 @@ function ShoppingHome() {
                     )
                   }
                   className="
-                    group
-                    relative
-                    cursor-pointer
-                    overflow-hidden
-                    rounded-2xl
-                    border
-                    bg-background
-                    transition-all
-                    duration-300
-                    hover:-translate-y-1
-                    hover:border-foreground/20
-                    hover:shadow-xl
-                  "
+              group
+              flex
+              min-w-[135px]
+              shrink-0
+              items-center
+              gap-3
+              rounded-xl
+              border
+              bg-background
+              px-4
+              py-4
+              text-left
+              transition-all
+              duration-200
+              hover:border-primary/30
+              hover:shadow-md
+              active:scale-[0.97]
+              sm:min-w-[155px]
+            "
                 >
-                  <CardContent
+                  <div
                     className="
-                      flex
-                      min-h-[155px]
-                      flex-col
-                      items-center
-                      justify-center
-                      p-5
-                    "
+                flex
+                h-11
+                w-11
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                bg-muted
+                transition-all
+                duration-200
+                group-hover:bg-primary
+                group-hover:text-primary-foreground
+              "
                   >
-                    <div
-                      className="
-                        flex
-                        h-14
-                        w-14
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-muted
-                        transition-all
-                        duration-300
-                        group-hover:scale-110
-                        group-hover:bg-foreground
-                        group-hover:text-background
-                      "
-                    >
-                      <BrandIcon className="h-6 w-6" />
-                    </div>
+                    <BrandIcon className="h-5 w-5" />
+                  </div>
 
-                    <span
-                      className="
-                        mt-4
-                        text-sm
-                        font-semibold
-                      "
-                    >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
                       {brandItem.label}
-                    </span>
+                    </p>
 
-                    <span
+                    <p
                       className="
-                        mt-1
-                        flex
-                        items-center
-                        gap-1
-                        text-xs
-                        text-muted-foreground
-                        transition-all
-                        duration-300
-                      "
+                  mt-0.5
+                  flex
+                  items-center
+                  gap-1
+                  text-xs
+                  text-muted-foreground
+                  group-hover:text-primary
+                "
                     >
                       Shop now
                       <ArrowRight className="h-3 w-3" />
-                    </span>
-                  </CardContent>
-                </Card>
+                    </p>
+                  </div>
+                </button>
               );
             })}
           </div>
 
-          <div className="mt-6 flex justify-center sm:hidden">
+          {/* Mobile */}
+          <div className="mt-4 flex justify-center sm:hidden">
             <Button
               variant="outline"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="rounded-full"
+              onClick={() => navigate("/shop/listing")}
+              className="rounded-full px-5 text-sm"
             >
               Explore all brands
-
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -1004,82 +890,121 @@ function ShoppingHome() {
       </section>
 
       {/* =====================================================
-          FEATURED PRODUCTS
-      ===================================================== */}
+    FEATURED PRODUCTS
+===================================================== */}
 
-      <section className="py-16 sm:py-20">
+      <section className="border-t bg-background py-10 sm:py-12 lg:py-14">
         <div className="container px-4 sm:px-6 lg:px-8">
 
-          <div
-            className="
-              mb-8
-              flex
-              items-end
-              justify-between
-              gap-4
-            "
-          >
+          {/* Section Header */}
+          <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
             <div>
-              <p className="mb-2 text-sm font-medium text-muted-foreground">
-                Curated for you
-              </p>
+              <div className="mb-1.5 flex items-center gap-2">
+                <span className="h-1.5 w-6 rounded-full bg-primary" />
 
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                  Trending now
+                </p>
+              </div>
+
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
                 Featured products
               </h2>
 
-              <p className="mt-2 text-sm text-muted-foreground">
-                Discover some of our most popular picks.
+              <p className="mt-1 text-sm text-muted-foreground">
+                Handpicked products you may love.
               </p>
             </div>
 
+            {/* Desktop View All */}
             <Button
               variant="ghost"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="hidden rounded-full sm:flex"
+              onClick={() => navigate("/shop/listing")}
+              className="
+          hidden
+          shrink-0
+          rounded-full
+          px-4
+          text-sm
+          font-semibold
+          sm:flex
+        "
             >
               View all
-
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </div>
 
+          {/* Products */}
           {productList?.length > 0 ? (
-            <div
-              className="
-                grid
-                grid-cols-1
-                gap-5
-                sm:grid-cols-2
-                lg:grid-cols-4
-              "
-            >
-              {productList.map(
-                (productItem) => (
-                  <ShoppingProductTile
+            <div className="relative">
+
+              {/* Product Row */}
+              <div
+                className="
+            flex
+            gap-3
+            overflow-x-auto
+            pb-4
+            scrollbar-hide
+            snap-x
+            snap-mandatory
+            sm:gap-4
+          "
+              >
+                {productList.slice(0, 8).map((productItem) => (
+                  <div
                     key={productItem._id}
-                    handleGetProductDetails={
-                      handleGetProductDetails
-                    }
-                    product={productItem}
-                    handleAddtoCart={
-                      handleAddtoCart
-                    }
-                  />
-                )
-              )}
+                    className="
+                w-[175px]
+                shrink-0
+                snap-start
+                sm:w-[205px]
+                md:w-[220px]
+                lg:w-[230px]
+                xl:w-[240px]
+              "
+                  >
+                    <ShoppingProductTile
+                      handleGetProductDetails={
+                        handleGetProductDetails
+                      }
+                      product={productItem}
+                      handleAddtoCart={handleAddtoCart}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Scroll Hint */}
+              <div
+                className="
+            pointer-events-none
+            absolute
+            right-0
+            top-0
+            hidden
+            h-full
+            w-16
+            bg-gradient-to-l
+            from-background
+            to-transparent
+            sm:block
+          "
+              />
+
             </div>
           ) : (
+            /* Empty State */
             <div
               className="
-                rounded-2xl
-                border
-                bg-muted/30
-                py-20
-                text-center
-              "
+          rounded-2xl
+          border
+          bg-muted/20
+          px-6
+          py-16
+          text-center
+        "
             >
               <p className="font-medium">
                 No products available right now.
@@ -1091,16 +1016,14 @@ function ShoppingHome() {
             </div>
           )}
 
-          <div className="mt-8 flex justify-center sm:hidden">
+          {/* Mobile View All */}
+          <div className="mt-5 flex justify-center sm:hidden">
             <Button
               variant="outline"
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              className="rounded-full"
+              onClick={() => navigate("/shop/listing")}
+              className="rounded-full px-6 text-sm font-semibold"
             >
-              Browse all products
-
+              View all products
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -1108,79 +1031,396 @@ function ShoppingHome() {
         </div>
       </section>
 
+
       {/* =====================================================
-          FINAL CTA
-      ===================================================== */}
+    TRUST / BENEFITS
+===================================================== */}
 
-      <section className="border-t py-16 sm:py-20">
-        <div className="container px-4 sm:px-6 lg:px-8">
-
+      <section className="border-y border-indigo-100/70 bg-gradient-to-r from-indigo-50/70 via-white to-pink-50/70">
+        <div
+          className="
+      container
+      grid
+      grid-cols-2
+      sm:grid-cols-4
+      divide-x
+      divide-indigo-100
+    "
+        >
+          {/* Fast Delivery */}
           <div
             className="
-              overflow-hidden
-              rounded-3xl
-              bg-foreground
-              px-6
-              py-12
-              text-center
-              text-background
-              sm:px-12
-              sm:py-16
-            "
+        group
+        flex
+        items-center
+        justify-center
+        gap-3
+        px-4
+        py-7
+        transition-all
+        duration-300
+        hover:bg-white/70
+        sm:py-8
+      "
           >
-            <p className="text-sm font-medium uppercase tracking-wider opacity-70">
-              Your style starts here
-            </p>
-
-            <h2
+            <div
               className="
-                mx-auto
-                mt-3
-                max-w-2xl
-                text-3xl
-                font-bold
-                tracking-tight
-                sm:text-4xl
-              "
+          flex
+          h-11
+          w-11
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          bg-indigo-100
+          text-indigo-600
+          transition-all
+          duration-300
+          group-hover:scale-110
+          group-hover:bg-indigo-600
+          group-hover:text-white
+        "
             >
-              Ready to find something you love?
-            </h2>
+              <Truck className="h-5 w-5" />
+            </div>
 
-            <p
-              className="
-                mx-auto
-                mt-4
-                max-w-xl
-                text-sm
-                opacity-70
-                sm:text-base
-              "
-            >
-              Explore our collection and discover
-              your next favorite piece.
-            </p>
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-foreground">
+                Fast delivery
+              </p>
 
-            <Button
-              onClick={() =>
-                navigate("/shop/listing")
-              }
-              size="lg"
-              className="
-                mt-7
-                rounded-full
-                bg-background
-                px-7
-                text-foreground
-                hover:bg-background/90
-              "
-            >
-              Start shopping
-
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Delivered to your door
+              </p>
+            </div>
           </div>
 
+          {/* Secure Payment */}
+          <div
+            className="
+        group
+        flex
+        items-center
+        justify-center
+        gap-3
+        px-4
+        py-7
+        transition-all
+        duration-300
+        hover:bg-white/70
+        sm:py-8
+      "
+          >
+            <div
+              className="
+          flex
+          h-11
+          w-11
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          bg-pink-100
+          text-pink-600
+          transition-all
+          duration-300
+          group-hover:scale-110
+          group-hover:bg-pink-600
+          group-hover:text-white
+        "
+            >
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-foreground">
+                Secure payment
+              </p>
+
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Safe & protected
+              </p>
+            </div>
+          </div>
+
+          {/* Easy Returns */}
+          <div
+            className="
+        group
+        flex
+        items-center
+        justify-center
+        gap-3
+        px-4
+        py-7
+        transition-all
+        duration-300
+        hover:bg-white/70
+        sm:py-8
+      "
+          >
+            <div
+              className="
+          flex
+          h-11
+          w-11
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          bg-indigo-100
+          text-indigo-600
+          transition-all
+          duration-300
+          group-hover:scale-110
+          group-hover:bg-indigo-600
+          group-hover:text-white
+        "
+            >
+              <RotateCcw className="h-5 w-5" />
+            </div>
+
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-foreground">
+                Easy returns
+              </p>
+
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Hassle-free shopping
+              </p>
+            </div>
+          </div>
+
+          {/* Customer Support */}
+          <div
+            className="
+        group
+        flex
+        items-center
+        justify-center
+        gap-3
+        px-4
+        py-7
+        transition-all
+        duration-300
+        hover:bg-white/70
+        sm:py-8
+      "
+          >
+            <div
+              className="
+          flex
+          h-11
+          w-11
+          shrink-0
+          items-center
+          justify-center
+          rounded-xl
+          bg-pink-100
+          text-pink-600
+          transition-all
+          duration-300
+          group-hover:scale-110
+          group-hover:bg-pink-600
+          group-hover:text-white
+        "
+            >
+              <Headphones className="h-5 w-5" />
+            </div>
+
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-foreground">
+                24/7 support
+              </p>
+
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                We're here to help
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+    FINAL CTA
+===================================================== */}
+
+      <section className="border-t bg-background py-12 sm:py-16 lg:py-20">
+        <div className="container px-4 sm:px-6 lg:px-8">
+          <div
+            className="
+        relative
+        isolate
+        overflow-hidden
+        rounded-3xl
+        bg-gradient-to-br
+        from-indigo-600
+        via-indigo-600
+        to-pink-600
+        px-6
+        py-12
+        text-center
+        text-white
+        shadow-[0_20px_60px_rgba(79,70,229,0.20)]
+        sm:px-12
+        sm:py-16
+        lg:px-20
+        lg:py-20
+      "
+          >
+            {/* Background Glow */}
+            <div
+              className="
+          pointer-events-none
+          absolute
+          -right-20
+          -top-20
+          h-64
+          w-64
+          rounded-full
+          bg-pink-400/30
+          blur-3xl
+        "
+            />
+
+            <div
+              className="
+          pointer-events-none
+          absolute
+          -bottom-24
+          -left-20
+          h-72
+          w-72
+          rounded-full
+          bg-indigo-400/30
+          blur-3xl
+        "
+            />
+
+            {/* Decorative Circle */}
+            <div
+              className="
+          pointer-events-none
+          absolute
+          right-10
+          top-10
+          hidden
+          h-20
+          w-20
+          rounded-full
+          border
+          border-white/10
+          sm:block
+        "
+            />
+
+            {/* Content */}
+            <div className="relative mx-auto max-w-2xl">
+              <span
+                className="
+            inline-flex
+            items-center
+            rounded-full
+            border
+            border-white/20
+            bg-white/10
+            px-4
+            py-1.5
+            text-xs
+            font-semibold
+            uppercase
+            tracking-[0.16em]
+            backdrop-blur-md
+          "
+              >
+                Start shopping
+              </span>
+
+              <h2
+                className="
+            mt-5
+            text-3xl
+            font-bold
+            leading-tight
+            tracking-tight
+            sm:text-4xl
+            lg:text-5xl
+          "
+              >
+                Find something you'll love.
+              </h2>
+
+              <p
+                className="
+            mx-auto
+            mt-4
+            max-w-xl
+            text-sm
+            leading-6
+            text-white/80
+            sm:text-base
+          "
+              >
+                Explore our latest collection and discover
+                products made for your style, everyday needs,
+                and special moments.
+              </p>
+
+              <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button
+                  onClick={() => navigate("/shop/listing")}
+                  size="lg"
+                  className="
+              w-full
+              rounded-full
+              bg-white
+              px-7
+              font-semibold
+              text-indigo-600
+              shadow-lg
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-white/90
+              sm:w-auto
+            "
+                >
+                  Shop now
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() =>
+                    document
+                      .getElementById("categories")
+                      ?.scrollIntoView({
+                        behavior: "smooth",
+                      })
+                  }
+                  className="
+              w-full
+              rounded-full
+              border-white/30
+              bg-white/10
+              px-7
+              font-semibold
+              text-white
+              backdrop-blur-md
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-white/20
+              hover:text-white
+              sm:w-auto
+            "
+                >
+                  Explore categories
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

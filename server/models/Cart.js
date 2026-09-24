@@ -7,6 +7,7 @@ const CartSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
     items: [
       {
         productId: {
@@ -14,6 +15,16 @@ const CartSchema = new mongoose.Schema(
           ref: "Product",
           required: true,
         },
+
+        // Selected product variant
+        // Example:
+        // Black + 9 -> variantId
+        // Black + 8 -> different variantId
+        variantId: {
+          type: mongoose.Schema.Types.ObjectId,
+          default: null,
+        },
+
         quantity: {
           type: Number,
           required: true,

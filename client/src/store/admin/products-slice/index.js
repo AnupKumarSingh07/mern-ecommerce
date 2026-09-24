@@ -80,10 +80,16 @@ const AdminProductsSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(fetchAllProducts.fulfilled, (state, action) => {
+        console.log("✅ PRODUCTS API RESPONSE:", action.payload);
+
         state.isLoading = false;
-        state.productList = action.payload.data;
+        state.productList = action.payload?.data || [];
+
+        console.log("✅ PRODUCT LIST:", state.productList);
       })
       .addCase(fetchAllProducts.rejected, (state, action) => {
+        console.error("❌ FETCH PRODUCTS ERROR:", action.error);
+
         state.isLoading = false;
         state.productList = [];
       });

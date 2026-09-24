@@ -14,22 +14,22 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
   const totalCartAmount =
     cartItems && cartItems.length > 0
       ? cartItems.reduce(
-          (sum, currentItem) =>
-            sum +
-            (currentItem?.salePrice > 0
-              ? currentItem?.salePrice
-              : currentItem?.price) *
-              currentItem?.quantity,
-          0
-        )
+        (sum, currentItem) =>
+          sum +
+          (currentItem?.salePrice > 0
+            ? currentItem?.salePrice
+            : currentItem?.price) *
+          currentItem?.quantity,
+        0
+      )
       : 0;
 
   const totalItems =
     cartItems && cartItems.length > 0
       ? cartItems.reduce(
-          (sum, item) => sum + item.quantity,
-          0
-        )
+        (sum, item) => sum + item.quantity,
+        0
+      )
       : 0;
 
   function handleCheckout() {
@@ -74,7 +74,11 @@ function UserCartWrapper({ cartItems, setOpenCartSheet }) {
           <div className="space-y-3">
             {cartItems.map((item) => (
               <UserCartItemsContent
-                key={item?._id || item?.productId}
+                key={
+                  item?.variantId
+                    ? `${item?.productId}-${item?.variantId}`
+                    : item?._id || item?.productId
+                }
                 cartItem={item}
               />
             ))}

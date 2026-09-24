@@ -9,54 +9,92 @@ import { useToast } from "../ui/use-toast";
 
 function UserCartItemsContent({ cartItem }) {
   const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
-  const { productList } = useSelector((state) => state.shopProducts);
 
   const dispatch = useDispatch();
   const { toast } = useToast();
 
-  function handleUpdateQuantity(getCartItem, typeOfAction) {
-    if (typeOfAction === "plus") {
-      const getCartItems = cartItems?.items || [];
+  // =====================================================
+  // VARIANT INFORMATION
+  // =====================================================
 
-      if (getCartItems.length) {
-        const indexOfCurrentCartItem = getCartItems.findIndex(
-          (item) => item.productId === getCartItem?.productId
-        );
+  const hasVariant =
+    Boolean(cartItem?.variantId) &&
+    Boolean(cartItem?.color || cartItem?.size);
 
-        const getCurrentProductIndex = productList?.findIndex(
-          (product) => product._id === getCartItem?.productId
-        );
+  const variantLabel = [
+    cartItem?.color,
+    cartItem?.size
+      ? `Size ${cartItem.size}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" • ");
 
-        if (getCurrentProductIndex !== -1) {
-          const getTotalStock =
-            productList[getCurrentProductIndex]?.totalStock;
+  // =====================================================
+  // PRICE
+  // =====================================================
 
-          if (indexOfCurrentCartItem > -1) {
-            const getQuantity =
-              getCartItems[indexOfCurrentCartItem]?.quantity;
+  const itemPrice =
+    cartItem?.salePrice > 0
+      ? cartItem?.salePrice
+      : cartItem?.price;
 
-            if (getQuantity + 1 > getTotalStock) {
-              toast({
-                title: `Only ${getQuantity} quantity can be added for this item`,
-                variant: "destructive",
-              });
+  const totalItemPrice =
+    itemPrice * cartItem?.quantity;
 
-              return;
-            }
-          }
-        }
-      }
+  // =====================================================
+  // STOCK
+  // =====================================================
+
+  // Backend now sends variant stock as `stock`.
+  // For old/non-variant products it sends totalStock.
+  const availableStock =
+    cartItem?.stock ?? cartItem?.totalStock ?? 0;
+
+  // =====================================================
+  // UPDATE QUANTITY
+  // =====================================================
+
+  function handleUpdateQuantity(
+    getCartItem,
+    typeOfAction
+  ) {
+    const newQuantity =
+      typeOfAction === "plus"
+        ? getCartItem?.quantity + 1
+        : getCartItem?.quantity - 1;
+
+    // -----------------------------------------------
+    // Don't allow quantity below 1
+    // -----------------------------------------------
+
+    if (newQuantity < 1) {
+      return;
+    }
+
+    // -----------------------------------------------
+    // Variant/product stock check
+    // -----------------------------------------------
+
+    if (
+      typeOfAction === "plus" &&
+      availableStock > 0 &&
+      newQuantity > availableStock
+    ) {
+      toast({
+        title: `Only ${availableStock} items available in stock`,
+        variant: "destructive",
+      });
+
+      return;
     }
 
     dispatch(
       updateCartQuantity({
         userId: user?.id,
         productId: getCartItem?.productId,
-        quantity:
-          typeOfAction === "plus"
-            ? getCartItem?.quantity + 1
-            : getCartItem?.quantity - 1,
+        variantId: getCartItem?.variantId || null,
+        quantity: newQuantity,
       })
     ).then((data) => {
       if (data?.payload?.success) {
@@ -67,11 +105,16 @@ function UserCartItemsContent({ cartItem }) {
     });
   }
 
+  // =====================================================
+  // DELETE CART ITEM
+  // =====================================================
+
   function handleCartItemDelete(getCartItem) {
     dispatch(
       deleteCartItem({
         userId: user?.id,
         productId: getCartItem?.productId,
+        variantId: getCartItem?.variantId || null,
       })
     ).then((data) => {
       if (data?.payload?.success) {
@@ -81,13 +124,6 @@ function UserCartItemsContent({ cartItem }) {
       }
     });
   }
-
-  const itemPrice =
-    cartItem?.salePrice > 0
-      ? cartItem?.salePrice
-      : cartItem?.price;
-
-  const totalItemPrice = itemPrice * cartItem?.quantity;
 
   return (
     <div
@@ -105,9 +141,16 @@ function UserCartItemsContent({ cartItem }) {
         transition-all
         duration-200
         hover:shadow-md
+
+        max-sm:items-start
+        max-sm:gap-3
+        max-sm:p-3
       "
     >
-      {/* Product Image */}
+      {/* =================================================
+          PRODUCT IMAGE
+          ================================================= */}
+
       <div
         className="
           h-20
@@ -116,8 +159,12 @@ function UserCartItemsContent({ cartItem }) {
           overflow-hidden
           rounded-xl
           bg-muted
+
           sm:h-24
           sm:w-24
+
+          max-sm:h-[72px]
+          max-sm:w-[72px]
         "
       >
         {cartItem?.image ? (
@@ -140,55 +187,145 @@ function UserCartItemsContent({ cartItem }) {
         )}
       </div>
 
-      {/* Product Information */}
+      {/* =================================================
+          PRODUCT INFORMATION
+          ================================================= */}
+
       <div className="min-w-0 flex-1">
-        <h3 className="line-clamp-2 text-sm font-semibold leading-5 sm:text-base">
+        {/* Product title */}
+
+        <h3
+          className="
+            line-clamp-2
+            text-sm
+            font-semibold
+            leading-5
+            sm:text-base
+          "
+        >
           {cartItem?.title}
         </h3>
+
+        {/* =================================================
+            VARIANT INFORMATION
+            ================================================= */}
+
+        {hasVariant && (
+          <div
+            className="
+              mt-1.5
+              flex
+              flex-wrap
+              items-center
+              gap-1.5
+              text-xs
+              sm:text-sm
+            "
+          >
+            <span className="font-medium text-foreground">
+              {variantLabel}
+            </span>
+          </div>
+        )}
+
+        {/* =================================================
+            PRICE
+            ================================================= */}
 
         <div className="mt-1 flex items-center gap-2">
           {cartItem?.salePrice > 0 ? (
             <>
               <span className="text-sm font-bold text-primary">
-                ${cartItem?.salePrice}
+                ₹{cartItem?.salePrice}
               </span>
 
               <span className="text-xs text-muted-foreground line-through">
-                ${cartItem?.price}
+                ₹{cartItem?.price}
               </span>
             </>
           ) : (
             <span className="text-sm font-semibold">
-              ${cartItem?.price}
+              ₹{cartItem?.price}
             </span>
           )}
         </div>
 
-        {/* Quantity Controls */}
+        {/* =================================================
+            STOCK INFORMATION
+            ================================================= */}
+
+        {hasVariant && (
+          <p
+            className={`
+              mt-1
+              text-xs
+              ${
+                availableStock <= 5
+                  ? "text-orange-600"
+                  : "text-muted-foreground"
+              }
+            `}
+          >
+            {availableStock > 0
+              ? `${availableStock} available`
+              : "Out of stock"}
+          </p>
+        )}
+
+        {/* =================================================
+            QUANTITY CONTROLS
+            ================================================= */}
+
         <div className="mt-3 flex items-center gap-2">
+          {/* Minus */}
+
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8 rounded-full"
             disabled={cartItem?.quantity === 1}
             onClick={() =>
-              handleUpdateQuantity(cartItem, "minus")
+              handleUpdateQuantity(
+                cartItem,
+                "minus"
+              )
             }
             aria-label="Decrease quantity"
           >
             <Minus className="h-3.5 w-3.5" />
           </Button>
 
-          <span className="flex min-w-8 items-center justify-center text-sm font-semibold">
+          {/* Quantity */}
+
+          <span
+            className="
+              flex
+              min-w-8
+              items-center
+              justify-center
+              text-sm
+              font-semibold
+            "
+          >
             {cartItem?.quantity}
           </span>
+
+          {/* Plus */}
 
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8 rounded-full"
+            disabled={
+              availableStock > 0 &&
+              cartItem?.quantity >=
+                availableStock
+            }
             onClick={() =>
-              handleUpdateQuantity(cartItem, "plus")
+              handleUpdateQuantity(
+                cartItem,
+                "plus"
+              )
             }
             aria-label="Increase quantity"
           >
@@ -197,11 +334,28 @@ function UserCartItemsContent({ cartItem }) {
         </div>
       </div>
 
-      {/* Price + Delete */}
-      <div className="flex h-full flex-col items-end justify-between gap-4">
+      {/* =================================================
+          PRICE + DELETE
+          ================================================= */}
+
+      <div
+        className="
+          flex
+          h-full
+          flex-col
+          items-end
+          justify-between
+          gap-4
+          max-sm:gap-3
+        "
+      >
+        {/* Total item price */}
+
         <span className="text-sm font-bold sm:text-base">
-          ${totalItemPrice.toFixed(2)}
+          ₹{totalItemPrice.toFixed(2)}
         </span>
+
+        {/* Delete */}
 
         <Button
           variant="ghost"
@@ -215,7 +369,9 @@ function UserCartItemsContent({ cartItem }) {
             hover:bg-destructive/10
             hover:text-destructive
           "
-          onClick={() => handleCartItemDelete(cartItem)}
+          onClick={() =>
+            handleCartItemDelete(cartItem)
+          }
           aria-label="Remove item"
         >
           <Trash2 className="h-4 w-4" />

@@ -17,15 +17,25 @@ function imageUploadUtil(file) {
         resource_type: "auto",
       },
       (error, result) => {
-        if (error) return reject(error);
+        if (error) {
+          return reject(error);
+        }
+
         resolve(result);
       }
     );
 
-    streamifier.createReadStream(file.buffer).pipe(stream);
+    streamifier
+      .createReadStream(file.buffer)
+      .pipe(stream);
   });
 }
 
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+});
 
-module.exports = { upload, imageUploadUtil };
+module.exports = {
+  upload,
+  imageUploadUtil,
+};

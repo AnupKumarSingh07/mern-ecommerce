@@ -1,7 +1,9 @@
 import ProductFilter from "@/components/shopping-view/filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
+
 import { Button } from "@/components/ui/button";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,18 +11,26 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { useToast } from "@/components/ui/use-toast";
 import { sortOptions } from "@/config";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+
+import {
+  addToCart,
+  fetchCartItems,
+} from "@/store/shop/cart-slice";
+
 import {
   fetchAllFilteredProducts,
   fetchProductDetails,
 } from "@/store/shop/products-slice";
+
 import {
   ArrowUpDownIcon,
   SlidersHorizontal,
   PackageSearch,
 } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
@@ -58,10 +68,15 @@ function ShoppingListing() {
 
   const [filters, setFilters] = useState({});
   const [sort, setSort] = useState(null);
+
   const [searchParams, setSearchParams] =
     useSearchParams();
 
   const [openDetailsDialog, setOpenDetailsDialog] =
+    useState(false);
+
+  // Mobile filter state
+  const [mobileFilterOpen, setMobileFilterOpen] =
     useState(false);
 
   const { toast } = useToast();
@@ -180,7 +195,9 @@ function ShoppingListing() {
       })
     ).then((data) => {
       if (data?.payload?.success) {
-        dispatch(fetchCartItems(user?.id));
+        dispatch(
+          fetchCartItems(user?.id)
+        );
 
         toast({
           title: "Product added to cart",
@@ -220,7 +237,10 @@ function ShoppingListing() {
     } else {
       setSearchParams({});
     }
-  }, [filters, setSearchParams]);
+  }, [
+    filters,
+    setSearchParams,
+  ]);
 
   /* =====================================================
      FETCH PRODUCTS
@@ -254,28 +274,42 @@ function ShoppingListing() {
     }
   }, [productDetails]);
 
+  /* =====================================================
+     PRODUCT COUNT
+  ===================================================== */
+
   const productCount =
     productList?.length || 0;
 
+  const activeFilterCount =
+    Object.values(filters).reduce(
+      (total, items) =>
+        total + items.length,
+      0
+    );
+
   return (
     <div className="min-h-screen bg-background">
+
       {/* =================================================
           PAGE HEADER
       ================================================= */}
 
       <section className="border-b bg-muted/20">
-        <div className="container mx-auto px-4 py-8 sm:py-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="container mx-auto px-4 py-6 sm:py-8 lg:px-6">
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Collection
               </p>
 
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
                 All Products
               </h1>
 
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-1.5 text-sm text-muted-foreground">
                 Discover products you'll love.
               </p>
             </div>
@@ -291,13 +325,15 @@ function ShoppingListing() {
                 rounded-full
                 border
                 bg-background
-                px-4
-                py-2
+                px-3.5
+                py-1.5
                 text-sm
                 font-medium
               "
             >
-              <PackageSearch className="h-4 w-4 text-muted-foreground" />
+              <PackageSearch
+                className="h-4 w-4 text-muted-foreground"
+              />
 
               <span>
                 {productCount}{" "}
@@ -306,7 +342,9 @@ function ShoppingListing() {
                   : "Products"}
               </span>
             </div>
+
           </div>
+
         </div>
       </section>
 
@@ -314,27 +352,25 @@ function ShoppingListing() {
           MAIN CONTENT
       ================================================= */}
 
-      <div className="container mx-auto px-4 py-6 sm:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
+
+        <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+
           {/* =================================================
-              FILTER SIDEBAR
+              DESKTOP FILTER SIDEBAR
           ================================================= */}
 
-          <aside className="w-full shrink-0 lg:w-64">
-            <div className="sticky top-4 rounded-2xl border bg-card p-4 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
+          <aside className="hidden w-64 shrink-0 lg:block">
 
-                <h2 className="font-semibold">
-                  Filters
-                </h2>
-              </div>
+            <div className="sticky top-4 rounded-xl border bg-card p-4 shadow-sm">
 
               <ProductFilter
                 filters={filters}
                 handleFilter={handleFilter}
               />
+
             </div>
+
           </aside>
 
           {/* =================================================
@@ -342,62 +378,95 @@ function ShoppingListing() {
           ================================================= */}
 
           <main className="min-w-0 flex-1">
-            {/* Toolbar */}
 
-            <div
-              className="
-                mb-6
-                flex
-                flex-col
-                gap-3
-                rounded-2xl
-                border
-                bg-card
-                p-3
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
-              "
-            >
-              <div className="px-2">
-                <p className="text-sm font-medium">
-                  {productCount} products found
-                </p>
+            {/* =================================================
+                MOBILE FILTER + SORT
+            ================================================= */}
 
-                <p className="text-xs text-muted-foreground">
-                  Browse and find your favorite items
-                </p>
-              </div>
+            <div className="mb-4 flex items-center gap-2 lg:hidden">
 
-              {/* Sort */}
+              {/* Filter button */}
+
+              <Button
+                variant="outline"
+                onClick={() =>
+                  setMobileFilterOpen(
+                    !mobileFilterOpen
+                  )
+                }
+                className="
+                  h-10
+                  flex-1
+                  rounded-lg
+                  bg-card
+                  px-3
+                  text-sm
+                "
+              >
+                <SlidersHorizontal
+                  className="mr-2 h-4 w-4"
+                />
+
+                Filters
+
+                {activeFilterCount > 0 && (
+                  <span
+                    className="
+                      ml-2
+                      flex
+                      h-5
+                      min-w-5
+                      items-center
+                      justify-center
+                      rounded-full
+                      bg-indigo-600
+                      px-1.5
+                      text-[10px]
+                      font-bold
+                      text-white
+                    "
+                  >
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+
+              {/* Mobile Sort */}
 
               <DropdownMenu>
+
                 <DropdownMenuTrigger asChild>
+
                   <Button
                     variant="outline"
-                    className="w-full rounded-xl sm:w-auto"
+                    className="
+                      h-10
+                      flex-1
+                      rounded-lg
+                      bg-card
+                      px-3
+                      text-sm
+                    "
                   >
-                    <ArrowUpDownIcon className="mr-2 h-4 w-4" />
+                    <ArrowUpDownIcon
+                      className="mr-2 h-4 w-4"
+                    />
 
-                    Sort by
-
-                    <span className="ml-1 text-muted-foreground">
-                      {sortOptions.find(
-                        (item) =>
-                          item.id === sort
-                      )?.label || "Default"}
-                    </span>
+                    Sort
                   </Button>
+
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
                   align="end"
                   className="w-56"
                 >
+
                   <DropdownMenuRadioGroup
                     value={sort}
                     onValueChange={handleSort}
                   >
+
                     {sortOptions.map(
                       (sortItem) => (
                         <DropdownMenuRadioItem
@@ -408,9 +477,186 @@ function ShoppingListing() {
                         </DropdownMenuRadioItem>
                       )
                     )}
+
                   </DropdownMenuRadioGroup>
+
                 </DropdownMenuContent>
+
               </DropdownMenu>
+
+            </div>
+
+            {/* =================================================
+                MOBILE FILTER PANEL
+            ================================================= */}
+
+            {mobileFilterOpen && (
+              <div
+                className="
+                  mb-4
+                  rounded-xl
+                  border
+                  bg-card
+                  p-4
+                  shadow-sm
+                  lg:hidden
+                "
+              >
+
+                <div className="mb-4 flex items-center justify-between border-b pb-3">
+
+                  <div>
+                    <h2 className="text-base font-semibold">
+                      Filters
+                    </h2>
+
+                    {activeFilterCount > 0 && (
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {activeFilterCount} selected
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setMobileFilterOpen(
+                        false
+                      )
+                    }
+                    className="rounded-lg"
+                  >
+                    Done
+                  </Button>
+
+                </div>
+
+                <ProductFilter
+                  filters={filters}
+                  handleFilter={handleFilter}
+                />
+
+              </div>
+            )}
+
+            {/* =================================================
+                DESKTOP TOOLBAR
+            ================================================= */}
+
+            <div
+              className="
+                mb-5
+                hidden
+                rounded-xl
+                border
+                bg-card
+                p-3
+                lg:flex
+                lg:items-center
+                lg:justify-between
+              "
+            >
+
+              <div className="px-2">
+
+                <p className="text-sm font-medium">
+                  {productCount} products found
+                </p>
+
+                <p className="text-xs text-muted-foreground">
+                  Browse and find your favorite items
+                </p>
+
+              </div>
+
+              {/* Desktop Sort */}
+
+              <DropdownMenu>
+
+                <DropdownMenuTrigger asChild>
+
+                  <Button
+                    variant="outline"
+                    className="rounded-lg"
+                  >
+                    <ArrowUpDownIcon
+                      className="mr-2 h-4 w-4"
+                    />
+
+                    Sort by
+
+                    <span className="ml-1 text-muted-foreground">
+                      {sortOptions.find(
+                        (item) =>
+                          item.id === sort
+                      )?.label ||
+                        "Default"}
+                    </span>
+                  </Button>
+
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56"
+                >
+
+                  <DropdownMenuRadioGroup
+                    value={sort}
+                    onValueChange={handleSort}
+                  >
+
+                    {sortOptions.map(
+                      (sortItem) => (
+                        <DropdownMenuRadioItem
+                          key={sortItem.id}
+                          value={sortItem.id}
+                        >
+                          {sortItem.label}
+                        </DropdownMenuRadioItem>
+                      )
+                    )}
+
+                  </DropdownMenuRadioGroup>
+
+                </DropdownMenuContent>
+
+              </DropdownMenu>
+
+            </div>
+
+            {/* =================================================
+                MOBILE PRODUCT COUNT
+            ================================================= */}
+
+            <div
+              className="
+                mb-4
+                flex
+                items-center
+                justify-between
+                lg:hidden
+              "
+            >
+              <div>
+                <p className="text-sm font-semibold">
+                  {productCount} products found
+                </p>
+
+                <p className="text-xs text-muted-foreground">
+                  Browse your favorites
+                </p>
+              </div>
+
+              {sort && (
+                <p className="max-w-[130px] truncate text-xs text-muted-foreground">
+                  {sortOptions.find(
+                    (item) =>
+                      item.id === sort
+                  )?.label}
+                </p>
+              )}
             </div>
 
             {/* =================================================
@@ -418,15 +664,18 @@ function ShoppingListing() {
             ================================================= */}
 
             {productCount > 0 ? (
+
               <div
                 className="
                   grid
-                  grid-cols-1
-                  gap-5
-                  sm:grid-cols-2
+                  grid-cols-2
+                  gap-3
+                  sm:gap-4
+                  lg:grid-cols-3
                   xl:grid-cols-3
                 "
               >
+
                 {productList.map(
                   (productItem) => (
                     <ShoppingProductTile
@@ -444,8 +693,11 @@ function ShoppingListing() {
                     />
                   )
                 )}
+
               </div>
+
             ) : (
+
               /* =================================================
                  EMPTY STATE
               ================================================= */
@@ -453,27 +705,48 @@ function ShoppingListing() {
               <div
                 className="
                   flex
-                  min-h-[400px]
+                  min-h-[350px]
                   flex-col
                   items-center
                   justify-center
-                  rounded-2xl
+                  rounded-xl
                   border
                   border-dashed
                   bg-muted/20
-                  p-8
+                  p-6
                   text-center
                 "
               >
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                  <PackageSearch className="h-7 w-7 text-muted-foreground" />
+
+                <div
+                  className="
+                    flex
+                    h-14
+                    w-14
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-muted
+                  "
+                >
+                  <PackageSearch
+                    className="h-6 w-6 text-muted-foreground"
+                  />
                 </div>
 
-                <h2 className="mt-5 text-xl font-semibold">
+                <h2 className="mt-4 text-lg font-semibold">
                   No products found
                 </h2>
 
-                <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
+                <p
+                  className="
+                    mt-2
+                    max-w-md
+                    text-sm
+                    leading-6
+                    text-muted-foreground
+                  "
+                >
                   We couldn't find any products
                   matching your current filters.
                   Try changing or removing some
@@ -482,7 +755,7 @@ function ShoppingListing() {
 
                 <Button
                   variant="outline"
-                  className="mt-5 rounded-xl"
+                  className="mt-4 rounded-lg"
                   onClick={() => {
                     setFilters({});
 
@@ -493,10 +766,15 @@ function ShoppingListing() {
                 >
                   Clear Filters
                 </Button>
+
               </div>
+
             )}
+
           </main>
+
         </div>
+
       </div>
 
       {/* =================================================
@@ -508,6 +786,7 @@ function ShoppingListing() {
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
       />
+
     </div>
   );
 }

@@ -79,6 +79,14 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+
+        brand: {
+          indigo: "hsl(var(--brand-indigo))",
+          "indigo-dark": "hsl(var(--brand-indigo-dark))",
+
+          pink: "hsl(var(--brand-pink))",
+          "pink-dark": "hsl(var(--brand-pink-dark))",
+        },
       },
 
       /* =====================================================

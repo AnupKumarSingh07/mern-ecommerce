@@ -1,9 +1,9 @@
 const { imageUploadUtil } = require("../../helpers/cloudinary");
 const Product = require("../../models/Product");
 
-// ===============================
-// Upload Product Image
-// ===============================
+// ==========================================
+// UPLOAD PRODUCT IMAGE
+// ==========================================
 const handleImageUpload = async (req, res) => {
   try {
     console.log("📸 Uploaded file:", req.file);
@@ -19,23 +19,23 @@ const handleImageUpload = async (req, res) => {
 
     console.log("☁️ Cloudinary result:", result);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       result,
     });
   } catch (error) {
-    console.error("❌ Upload Error:", error);
+    console.error("❌ Upload Image Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-// ===============================
-// Add New Product
-// ===============================
+// ==========================================
+// ADD NEW PRODUCT
+// ==========================================
 const addProduct = async (req, res) => {
   try {
     const {
@@ -48,66 +48,105 @@ const addProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      variants,
     } = req.body;
 
-    console.log("Request Body:", req.body);
+    // -----------------------------
+    // Validate required fields
+    // -----------------------------
+    if (
+      !image ||
+      !title ||
+      !description ||
+      !category ||
+      !brand ||
+      price === undefined ||
+      totalStock === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Required product fields are missing",
+      });
+    }
 
+    // -----------------------------
+    // Clean variants
+    // -----------------------------
+    const cleanedVariants = Array.isArray(variants)
+      ? variants
+          .filter(
+            (variant) =>
+              variant &&
+              (variant.color || variant.size)
+          )
+          .map((variant) => ({
+            color: String(variant.color || "").trim(),
+            size: String(variant.size || "").trim(),
+            price: Number(variant.price || 0),
+            salePrice: Number(variant.salePrice || 0),
+            stock: Number(variant.stock || 0),
+          }))
+      : [];
+
+    // -----------------------------
+    // Create product
+    // -----------------------------
     const newlyCreatedProduct = new Product({
       image,
       title,
       description,
       category,
       brand,
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
+      price: Number(price),
+      salePrice: Number(salePrice || 0),
+      totalStock: Number(totalStock),
+      averageReview: Number(averageReview || 0),
+      variants: cleanedVariants,
     });
-
-    console.log("Product Before Save:", newlyCreatedProduct);
 
     await newlyCreatedProduct.save();
 
-    console.log("✅ Product Saved Successfully");
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
+      message: "Product added successfully",
       data: newlyCreatedProduct,
     });
   } catch (error) {
-    console.error("❌ Add Product Error:", error);
+    console.error("❌ ADD PRODUCT ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-// ===============================
-// Fetch All Products
-// ===============================
+// ==========================================
+// FETCH ALL PRODUCTS
+// ==========================================
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({});
+    const products = await Product.find({}).sort({
+      createdAt: -1,
+    });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      data: listOfProducts,
+      data: products,
     });
   } catch (error) {
-    console.error("❌ Fetch Products Error:", error);
+    console.error("❌ FETCH PRODUCTS ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
-// ===============================
-// Edit Product
-// ===============================
+// ==========================================
+// EDIT PRODUCT
+// ==========================================
 const editProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -122,65 +161,10 @@ const editProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      variants,
     } = req.body;
 
-    const findProduct = await Product.findById(id);
-
-    if (!findProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    findProduct.title = title || findProduct.title;
-    findProduct.description =
-      description || findProduct.description;
-    findProduct.category =
-      category || findProduct.category;
-    findProduct.brand = brand || findProduct.brand;
-
-    findProduct.price =
-      price === "" ? 0 : price || findProduct.price;
-
-    findProduct.salePrice =
-      salePrice === ""
-        ? 0
-        : salePrice || findProduct.salePrice;
-
-    findProduct.totalStock =
-      totalStock || findProduct.totalStock;
-
-    findProduct.image =
-      image || findProduct.image;
-
-    findProduct.averageReview =
-      averageReview || findProduct.averageReview;
-
-    await findProduct.save();
-
-    res.status(200).json({
-      success: true,
-      data: findProduct,
-    });
-  } catch (error) {
-    console.error("❌ Edit Product Error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-// ===============================
-// Delete Product
-// ===============================
-const deleteProduct = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const product = await Product.findByIdAndDelete(id);
+    const product = await Product.findById(id);
 
     if (!product) {
       return res.status(404).json({
@@ -189,20 +173,114 @@ const deleteProduct = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    // -----------------------------
+    // Update normal fields
+    // -----------------------------
+    if (image !== undefined) {
+      product.image = image;
+    }
+
+    if (title !== undefined) {
+      product.title = title;
+    }
+
+    if (description !== undefined) {
+      product.description = description;
+    }
+
+    if (category !== undefined) {
+      product.category = category;
+    }
+
+    if (brand !== undefined) {
+      product.brand = brand;
+    }
+
+    if (price !== undefined) {
+      product.price = Number(price);
+    }
+
+    if (salePrice !== undefined) {
+      product.salePrice = Number(salePrice || 0);
+    }
+
+    if (totalStock !== undefined) {
+      product.totalStock = Number(totalStock);
+    }
+
+    if (averageReview !== undefined) {
+      product.averageReview = Number(averageReview || 0);
+    }
+
+    // -----------------------------
+    // Update variants
+    // -----------------------------
+    if (Array.isArray(variants)) {
+      product.variants = variants
+        .filter(
+          (variant) =>
+            variant &&
+            (variant.color || variant.size)
+        )
+        .map((variant) => ({
+          color: String(variant.color || "").trim(),
+          size: String(variant.size || "").trim(),
+          price: Number(variant.price || 0),
+          salePrice: Number(variant.salePrice || 0),
+          stock: Number(variant.stock || 0),
+        }));
+    }
+
+    await product.save();
+
+    return res.status(200).json({
       success: true,
-      message: "Product deleted successfully",
+      message: "Product updated successfully",
+      data: product,
     });
   } catch (error) {
-    console.error("❌ Delete Product Error:", error);
+    console.error("❌ EDIT PRODUCT ERROR:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
 
+// ==========================================
+// DELETE PRODUCT
+// ==========================================
+const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedProduct = await Product.findByIdAndDelete(id);
+
+    if (!deletedProduct) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ DELETE PRODUCT ERROR:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==========================================
+// EXPORT
+// ==========================================
 module.exports = {
   handleImageUpload,
   addProduct,

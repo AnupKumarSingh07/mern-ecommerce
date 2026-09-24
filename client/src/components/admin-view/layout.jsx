@@ -8,14 +8,20 @@ function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Sidebar */}
+    <div className="flex min-h-screen w-full bg-[#f7f8fc]">
+      {/* =========================================
+          SIDEBAR
+      ========================================= */}
+
       <AdminSideBar
         open={isSidebarOpen}
         setOpen={setIsSidebarOpen}
       />
 
-      {/* Main Content */}
+      {/* =========================================
+          MAIN AREA
+      ========================================= */}
+
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
         <AdminHeader setOpen={setIsSidebarOpen} />
@@ -23,7 +29,20 @@ function AdminLayout() {
         {/* Page Content */}
         <main
           role="main"
-          className="flex flex-1 flex-col overflow-auto bg-muted/40 p-4 md:p-6"
+          className="
+            flex
+            min-h-0
+            flex-1
+            flex-col
+            overflow-auto
+            bg-[#f7f8fc]
+            px-4
+            py-5
+            md:px-6
+            md:py-6
+            lg:px-7
+            lg:py-7
+          "
         >
           <Outlet />
         </main>

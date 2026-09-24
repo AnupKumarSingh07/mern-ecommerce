@@ -1,56 +1,93 @@
-import { AlignJustify, LogOut, UserCircle2 } from "lucide-react";
+import { AlignJustify } from "lucide-react";
+
 import { Button } from "../ui/button";
-import { useDispatch, useSelector } from "react-redux";
-import { logoutUser } from "@/store/auth-slice";
 
 function AdminHeader({ setOpen }) {
-  const dispatch = useDispatch();
-
-  const { user } = useSelector((state) => state.auth);
-
-  function handleLogout() {
-    dispatch(logoutUser());
-  }
-
   return (
-    <header className="flex h-16 items-center border-b bg-background px-4 md:px-6">
-      {/* Mobile Menu Button */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setOpen(true)}
-        className="lg:hidden"
-        aria-label="Open sidebar"
-      >
-        <AlignJustify className="h-5 w-5" />
-      </Button>
+    <header
+      className="
+        sticky
+        top-0
+        z-30
+        flex
+        h-16
+        shrink-0
+        items-center
+        justify-between
+        border-b
+        border-slate-200/70
+        bg-white/95
+        px-4
+        backdrop-blur-xl
+        md:px-6
+        lg:px-7
+      "
+    >
+      {/* LEFT */}
 
-      {/* Right Section */}
-      <div className="ml-auto flex items-center gap-3 md:gap-4">
-        {/* Admin Info */}
-        <div className="hidden items-center gap-2 md:flex">
-          <UserCircle2 className="h-8 w-8 text-primary" />
+      <div className="flex items-center gap-3">
+        {/* Mobile Menu */}
 
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold">
-              {user?.userName || "Admin"}
-            </span>
-
-            <span className="text-xs text-muted-foreground">
-              Administrator
-            </span>
-          </div>
-        </div>
-
-        {/* Logout Button */}
         <Button
-          variant="destructive"
-          onClick={handleLogout}
-          className="flex items-center gap-2"
+          variant="outline"
+          size="icon"
+          onClick={() => setOpen(true)}
+          className="
+            h-9
+            w-9
+            rounded-lg
+            border-slate-200
+            bg-white
+            text-slate-700
+            shadow-none
+            transition-all
+            hover:bg-slate-50
+            hover:text-slate-900
+            lg:hidden
+          "
+          aria-label="Open sidebar"
         >
-          <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          <AlignJustify className="h-[18px] w-[18px]" />
         </Button>
+
+        {/* Header Context */}
+
+        <div>
+          <p className="text-[13px] font-medium text-slate-500">
+            Welcome back
+          </p>
+
+          <p className="hidden text-[11px] text-slate-400 sm:block">
+            Manage your store from your dashboard
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT */}
+
+      <div className="flex items-center">
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            rounded-full
+            border
+            border-slate-200
+            bg-slate-50
+            px-3
+            py-1.5
+          "
+        >
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-50" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+
+          <span className="text-[11px] font-semibold text-slate-600">
+            Admin
+          </span>
+        </div>
       </div>
     </header>
   );

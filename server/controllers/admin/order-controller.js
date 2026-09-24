@@ -1,34 +1,53 @@
 const Order = require("../../models/Order");
+const User = require("../../models/User");
 
-const getAllOrdersOfAllUsers = async (req, res) => {
+// =====================================================
+// GET ALL ORDERS
+// =====================================================
+
+const getAllOrdersOfAllUsers = async (
+  req,
+  res
+) => {
   try {
-    const orders = await Order.find({});
+    const orders = await Order.find({})
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
 
-    if (!orders.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No orders found!",
-      });
-    }
-
-    res.status(200).json({
+    // Empty orders are NOT an API error.
+    return res.status(200).json({
       success: true,
       data: orders,
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({
+  } catch (error) {
+    console.error(
+      "ADMIN GET ALL ORDERS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message:
+        "Failed to fetch orders.",
     });
   }
 };
 
-const getOrderDetailsForAdmin = async (req, res) => {
+// =====================================================
+// GET SINGLE ORDER
+// =====================================================
+
+const getOrderDetailsForAdmin = async (
+  req,
+  res
+) => {
   try {
     const { id } = req.params;
 
-    const order = await Order.findById(id);
+    const order =
+      await Order.findById(id).lean();
 
     if (!order) {
       return res.status(404).json({
@@ -37,25 +56,94 @@ const getOrderDetailsForAdmin = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    // Find customer information
+    let customer = null;
+
+    if (order.userId) {
+      customer =
+        await User.findById(
+          order.userId
+        )
+          .select(
+            "userName email"
+          )
+          .lean();
+    }
+
+    return res.status(200).json({
       success: true,
-      data: order,
+      data: {
+        ...order,
+
+        customerName:
+          customer?.userName ||
+          order.userName ||
+          "Customer",
+
+        customerEmail:
+          customer?.email || "",
+      },
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({
+  } catch (error) {
+    console.error(
+      "ADMIN GET ORDER DETAILS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message:
+        "Failed to fetch order details.",
     });
   }
 };
 
-const updateOrderStatus = async (req, res) => {
+// =====================================================
+// UPDATE ORDER STATUS
+// =====================================================
+
+const updateOrderStatus = async (
+  req,
+  res
+) => {
   try {
     const { id } = req.params;
     const { orderStatus } = req.body;
 
-    const order = await Order.findById(id);
+    const allowedStatuses = [
+      "pending",
+      "confirmed",
+      "inProcess",
+      "inShipping",
+      "delivered",
+      "rejected",
+    ];
+
+    if (
+      !allowedStatuses.includes(
+        orderStatus
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid order status.",
+      });
+    }
+
+    const order =
+      await Order.findByIdAndUpdate(
+        id,
+        {
+          orderStatus,
+          orderUpdateDate:
+            new Date(),
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
 
     if (!order) {
       return res.status(404).json({
@@ -64,17 +152,22 @@ const updateOrderStatus = async (req, res) => {
       });
     }
 
-    await Order.findByIdAndUpdate(id, { orderStatus });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: "Order status is updated successfully!",
+      message:
+        "Order status updated successfully!",
+      data: order,
     });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({
+  } catch (error) {
+    console.error(
+      "ADMIN UPDATE ORDER STATUS ERROR:",
+      error
+    );
+
+    return res.status(500).json({
       success: false,
-      message: "Some error occured!",
+      message:
+        "Failed to update order status.",
     });
   }
 };

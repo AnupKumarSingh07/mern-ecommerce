@@ -6,12 +6,33 @@ const {
   deleteFeatureImage,
 } = require("../../controllers/common/feature-controller");
 
+const {
+  authMiddleware,
+} = require("../../controllers/auth/auth-controller");
+
+const adminMiddleware = require("../../middlewares/admin-middleware");
+
 const router = express.Router();
 
-router.post("/add", addFeatureImage);
+// Public
+router.get(
+  "/get",
+  getFeatureImages
+);
 
-router.get("/get", getFeatureImages);
+// Admin only
+router.post(
+  "/add",
+  authMiddleware,
+  adminMiddleware,
+  addFeatureImage
+);
 
-router.delete("/delete/:id", deleteFeatureImage);
+router.delete(
+  "/delete/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteFeatureImage
+);
 
 module.exports = router;

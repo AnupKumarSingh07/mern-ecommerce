@@ -1,7 +1,13 @@
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { ShoppingCart, ArrowUpRight } from "lucide-react";
+
+import {
+  ShoppingCart,
+  ArrowUpRight,
+  Heart,
+  Star,
+} from "lucide-react";
 
 import {
   brandOptionsMap,
@@ -13,13 +19,15 @@ function ShoppingProductTile({
   handleGetProductDetails,
   handleAddtoCart,
 }) {
-  const isOutOfStock = Number(product?.totalStock) === 0;
+  const isOutOfStock =
+    Number(product?.totalStock) === 0;
 
   const isLowStock =
     Number(product?.totalStock) > 0 &&
     Number(product?.totalStock) < 10;
 
-  const isOnSale = Number(product?.salePrice) > 0;
+  const isOnSale =
+    Number(product?.salePrice) > 0;
 
   const productImage =
     product?.image ||
@@ -27,18 +35,41 @@ function ShoppingProductTile({
     product?.imageUrl ||
     "";
 
+  /* =====================================================
+     PRODUCT CLICK
+  ===================================================== */
+
   function handleProductClick() {
     if (!isOutOfStock) {
-      handleGetProductDetails(product?._id);
+      handleGetProductDetails(
+        product?._id
+      );
     }
   }
+
+  /* =====================================================
+     CART CLICK
+  ===================================================== */
 
   function handleCartClick(event) {
     event.stopPropagation();
 
     if (!isOutOfStock) {
-      handleAddtoCart(product?._id, product?.totalStock);
+      handleAddtoCart(
+        product?._id,
+        product?.totalStock
+      );
     }
+  }
+
+  /* =====================================================
+     WISHLIST CLICK
+  ===================================================== */
+
+  function handleWishlistClick(event) {
+    event.stopPropagation();
+
+    // Wishlist functionality can be connected later.
   }
 
   return (
@@ -47,24 +78,39 @@ function ShoppingProductTile({
       className="
         group
         overflow-hidden
-        rounded-2xl
-        border
+        rounded-xl
+        border-border/70
         bg-card
+        shadow-sm
         transition-all
         duration-300
-        hover:-translate-y-1
-        hover:shadow-xl
+        hover:-translate-y-0.5
+        hover:border-indigo-200
+        hover:shadow-[0_10px_25px_rgba(79,70,229,0.10)]
       "
     >
+
       {/* =====================================================
           PRODUCT IMAGE
       ===================================================== */}
 
-      <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+      <div
+        className="
+          relative
+          aspect-square
+          overflow-hidden
+          bg-muted/40
+        "
+      >
+
         {productImage ? (
+
           <img
             src={productImage}
-            alt={product?.title || "Product"}
+            alt={
+              product?.title ||
+              "Product"
+            }
             className="
               h-full
               w-full
@@ -75,13 +121,28 @@ function ShoppingProductTile({
               group-hover:scale-105
             "
           />
+
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+
+          <div
+            className="
+              flex
+              h-full
+              items-center
+              justify-center
+              bg-muted
+              text-xs
+              text-muted-foreground
+            "
+          >
             No image
           </div>
+
         )}
 
-        {/* Image overlay */}
+        {/* =================================================
+            IMAGE OVERLAY
+        ================================================= */}
 
         <div
           className="
@@ -89,7 +150,7 @@ function ShoppingProductTile({
             absolute
             inset-0
             bg-gradient-to-t
-            from-black/25
+            from-black/20
             via-transparent
             to-transparent
             opacity-0
@@ -100,156 +161,427 @@ function ShoppingProductTile({
         />
 
         {/* =================================================
-            STOCK / SALE BADGE
+            BADGES
         ================================================= */}
 
-        <div className="absolute left-3 top-3 flex flex-col gap-2">
+        <div
+          className="
+            absolute
+            left-2
+            top-2
+            flex
+            flex-col
+            gap-1.5
+            sm:left-3
+            sm:top-3
+          "
+        >
+
           {isOutOfStock ? (
+
             <Badge
               className="
                 rounded-full
                 border-0
-                bg-black/80
-                px-3
-                py-1
-                text-xs
-                font-medium
+                bg-slate-950/85
+                px-2
+                py-0.5
+                text-[9px]
+                font-semibold
                 text-white
-                backdrop-blur-sm
+                shadow-sm
+                backdrop-blur-md
+                sm:px-3
+                sm:py-1
+                sm:text-[11px]
               "
             >
               Out of stock
             </Badge>
+
           ) : isLowStock ? (
+
             <Badge
               className="
                 rounded-full
                 border
                 border-orange-200
-                bg-orange-50
-                px-3
-                py-1
-                text-xs
-                font-medium
+                bg-orange-50/95
+                px-2
+                py-0.5
+                text-[9px]
+                font-semibold
                 text-orange-700
                 shadow-sm
-                backdrop-blur-sm
+                backdrop-blur-md
+                sm:px-3
+                sm:py-1
+                sm:text-[11px]
               "
             >
               Only {product?.totalStock} left
             </Badge>
+
           ) : isOnSale ? (
+
             <Badge
               className="
                 rounded-full
                 border-0
-                bg-primary
-                px-3
-                py-1
-                text-xs
-                font-medium
-                text-primary-foreground
+                bg-gradient-to-r
+                from-indigo-600
+                to-pink-500
+                px-2
+                py-0.5
+                text-[9px]
+                font-semibold
+                text-white
+                shadow-sm
+                sm:px-3
+                sm:py-1
+                sm:text-[11px]
               "
             >
               Sale
             </Badge>
+
           ) : null}
+
         </div>
+
+        {/* =================================================
+            WISHLIST
+        ================================================= */}
+
+        {!isOutOfStock && (
+
+          <button
+            type="button"
+            aria-label="Add to wishlist"
+            onClick={handleWishlistClick}
+            className="
+              absolute
+              right-2
+              top-2
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-white/30
+              bg-white/90
+              text-slate-700
+              shadow-md
+              backdrop-blur-md
+              transition-all
+              duration-200
+              hover:scale-110
+              hover:bg-white
+              hover:text-pink-500
+              sm:right-3
+              sm:top-3
+              sm:h-9
+              sm:w-9
+            "
+          >
+            <Heart
+              className="
+                h-3.5
+                w-3.5
+                sm:h-4
+                sm:w-4
+              "
+            />
+          </button>
+
+        )}
 
         {/* =================================================
             QUICK VIEW
         ================================================= */}
 
         {!isOutOfStock && (
+
           <div
             className="
               absolute
-              bottom-3
-              right-3
+              bottom-2
+              right-2
+              hidden
               translate-y-2
               opacity-0
               transition-all
               duration-300
               group-hover:translate-y-0
               group-hover:opacity-100
+              sm:block
+              sm:bottom-3
+              sm:right-3
             "
           >
-            <div
+
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+
+                handleGetProductDetails(
+                  product?._id
+                );
+              }}
               className="
                 flex
-                h-10
-                w-10
+                h-9
+                w-9
                 items-center
                 justify-center
                 rounded-full
                 bg-white
-                text-black
+                text-slate-900
                 shadow-lg
-                transition-transform
+                transition-all
                 duration-200
                 hover:scale-110
+                hover:bg-indigo-600
+                hover:text-white
               "
               title="View product"
+              aria-label="View product"
             >
-              <ArrowUpRight className="h-4 w-4" />
-            </div>
+              <ArrowUpRight
+                className="h-4 w-4"
+              />
+            </button>
+
           </div>
+
         )}
+
       </div>
 
       {/* =====================================================
           PRODUCT INFORMATION
       ===================================================== */}
 
-      <CardContent className="p-4">
-        {/* Brand */}
+      <CardContent
+        className="
+          p-3
+          sm:p-4
+        "
+      >
 
-        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          {brandOptionsMap[product?.brand] || product?.brand}
+        {/* =================================================
+            BRAND
+        ================================================= */}
+
+        <p
+          className="
+            text-[9px]
+            font-bold
+            uppercase
+            tracking-[0.12em]
+            text-indigo-600
+            sm:text-[11px]
+          "
+        >
+          {brandOptionsMap[
+            product?.brand
+          ] || product?.brand}
         </p>
 
-        {/* Product title */}
+        {/* =================================================
+            PRODUCT TITLE
+        ================================================= */}
 
         <h3
           className="
             mt-1
             line-clamp-2
-            min-h-[48px]
+            min-h-[40px]
             text-sm
             font-semibold
-            leading-6
+            leading-5
             tracking-tight
+            text-foreground
             transition-colors
-            group-hover:text-primary
+            duration-200
+            group-hover:text-indigo-600
+            sm:min-h-[42px]
           "
         >
           {product?.title}
         </h3>
 
-        {/* Category */}
+        {/* =================================================
+            CATEGORY
+        ================================================= */}
 
-        <p className="mt-1 text-xs text-muted-foreground">
-          {categoryOptionsMap[product?.category] || product?.category}
+        <p
+          className="
+            mt-1
+            truncate
+            text-[11px]
+            text-muted-foreground
+            sm:text-xs
+          "
+        >
+          {categoryOptionsMap[
+            product?.category
+          ] || product?.category}
         </p>
 
-        {/* Price */}
+        {/* =================================================
+            RATING
+        ================================================= */}
 
-        <div className="mt-4 flex items-baseline gap-2">
+        <div
+          className="
+            mt-2
+            flex
+            items-center
+            gap-1
+          "
+        >
+
+          <div
+            className="
+              flex
+              items-center
+              gap-0.5
+            "
+          >
+
+            <Star
+              className="
+                h-3
+                w-3
+                fill-amber-400
+                text-amber-400
+                sm:h-3.5
+                sm:w-3.5
+              "
+            />
+
+            <Star
+              className="
+                h-3
+                w-3
+                fill-amber-400
+                text-amber-400
+                sm:h-3.5
+                sm:w-3.5
+              "
+            />
+
+            <Star
+              className="
+                h-3
+                w-3
+                fill-amber-400
+                text-amber-400
+                sm:h-3.5
+                sm:w-3.5
+              "
+            />
+
+            <Star
+              className="
+                h-3
+                w-3
+                fill-amber-400
+                text-amber-400
+                sm:h-3.5
+                sm:w-3.5
+              "
+            />
+
+            <Star
+              className="
+                h-3
+                w-3
+                fill-amber-400
+                text-amber-400
+                sm:h-3.5
+                sm:w-3.5
+              "
+            />
+
+          </div>
+
+          <span
+            className="
+              text-[9px]
+              text-muted-foreground
+              sm:text-[11px]
+            "
+          >
+            Popular
+          </span>
+
+        </div>
+
+        {/* =================================================
+            PRICE
+        ================================================= */}
+
+        <div
+          className="
+            mt-2
+            flex
+            items-baseline
+            gap-1.5
+            sm:mt-3
+            sm:gap-2
+          "
+        >
+
           {isOnSale ? (
+
             <>
-              <span className="text-lg font-bold text-primary">
+
+              <span
+                className="
+                  text-base
+                  font-bold
+                  tracking-tight
+                  text-indigo-600
+                  sm:text-lg
+                "
+              >
                 ${product?.salePrice}
               </span>
 
-              <span className="text-sm text-muted-foreground line-through">
+              <span
+                className="
+                  text-[11px]
+                  text-muted-foreground
+                  line-through
+                  sm:text-sm
+                "
+              >
                 ${product?.price}
               </span>
+
             </>
+
           ) : (
-            <span className="text-lg font-bold">
+
+            <span
+              className="
+                text-base
+                font-bold
+                tracking-tight
+                text-foreground
+                sm:text-lg
+              "
+            >
               ${product?.price}
             </span>
+
           )}
+
         </div>
 
         {/* =================================================
@@ -260,20 +592,52 @@ function ShoppingProductTile({
           disabled={isOutOfStock}
           onClick={handleCartClick}
           className="
-            mt-4
-            h-10
+            mt-3
+            h-9
             w-full
-            rounded-xl
+            rounded-lg
+            bg-gradient-to-r
+            from-indigo-600
+            to-pink-500
+            px-2
+            text-xs
+            font-semibold
+            text-white
+            shadow-sm
             transition-all
-            duration-200
-            group-hover:shadow-md
+            duration-300
+            hover:from-indigo-700
+            hover:to-pink-600
+            hover:shadow-md
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+            sm:mt-4
+            sm:h-10
+            sm:rounded-xl
+            sm:px-4
+            sm:text-sm
           "
         >
-          <ShoppingCart className="mr-2 h-4 w-4" />
 
-          {isOutOfStock ? "Out of stock" : "Add to cart"}
+          <ShoppingCart
+            className="
+              mr-1.5
+              h-3.5
+              w-3.5
+              sm:mr-2
+              sm:h-4
+              sm:w-4
+            "
+          />
+
+          {isOutOfStock
+            ? "Out of stock"
+            : "Add to cart"}
+
         </Button>
+
       </CardContent>
+
     </Card>
   );
 }
